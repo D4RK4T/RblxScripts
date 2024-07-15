@@ -1,329 +1,113 @@
--- IM NOT THE DEVELOPER OF THIS SCRIPT
--- I ONLY MODIFIED SOME SHITS
+-- Made by Blissful#4992
+local Player = game:GetService("Players").LocalPlayer
+local Camera = game:GetService("Workspace").CurrentCamera
+local Mouse = Player:GetMouse()
 
-local function API_Check()
-    if Drawing == nil then
-        return "No"
-    else
-        return "Yes"
-    end
-end
+_G.EnableESP = true
 
-local Find_Required = API_Check()
+local function DrawESP(plr)
+    local Box = Drawing.new("Quad")
+    Box.Visible = false
+    Box.PointA = Vector2.new(0, 0)
+    Box.PointB = Vector2.new(0, 0)
+    Box.PointC = Vector2.new(0, 0)
+    Box.PointD = Vector2.new(0, 0)
+    Box.Color = plr.TeamColor.Color
+    Box.Thickness = 2
+    Box.Transparency = 1
 
-if Find_Required == "No" then
-    game:GetService("StarterGui"):SetCore("SendNotification",{
-        Title = "Exunys Developer";
-        Text = "Boxes script could not be loaded because your exploit is unsupported.";
-        Duration = math.huge;
-        Button1 = "OK"
-    })
-
-    return
-end
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-
-local Typing = false
-
-_G.SendNotifications = false   -- If set to true then the script would notify you frequently on any changes applied and when loaded / errored. (If a game can detect this, it is recommended to set it to false)
-_G.DefaultSettings = false   -- If set to true then the boxes script would run with default settings regardless of any changes you made.
-
-_G.TeamCheck = false   -- If set to true then the script would create boxes only for the enemy team members.
-
-_G.BoxesVisible = true   -- If set to true then the boxes will be visible and vice versa.
-_G.LineColor = Color3.fromRGB(255, 80, 10)   -- The color that the boxes would appear as.
-_G.LineThickness = 2   -- The thickness of the boxes.
-_G.LineTransparency = 1   -- The transparency of the boxes.
-_G.SizeIncrease = 1   -- How much the box's size is increased (The size is multiplied by the value of this variable). (1 is default, anything more then 2 is not recommended) <float> / <int>
-
-_G.DisableKey = nil   -- The key that disables / enables the boxes.
-
-local function CreateBoxes()
-    for _, v in next, Players:GetPlayers() do
-        if v.Name ~= Players.LocalPlayer.Name then
-            local TopLeftLine = Drawing.new("Line")
-            local TopRightLine = Drawing.new("Line")
-            local BottomLeftLine = Drawing.new("Line")
-            local BottomRightLine = Drawing.new("Line")
-
-            RunService.RenderStepped:Connect(function()
-                if workspace:FindFirstChild(v.Name) ~= nil and workspace[v.Name]:FindFirstChild("HumanoidRootPart") ~= nil then 
-                    _G.LineColor = v.Team.TeamColor.Color
-                    TopLeftLine.Thickness = _G.LineThickness
-                    TopLeftLine.Transparency = _G.LineTransparency
-                    TopLeftLine.Color = _G.LineColor
-
-                    TopRightLine.Thickness = _G.LineThickness
-                    TopRightLine.Transparency = _G.LineTransparency
-                    TopRightLine.Color = _G.LineColor
-
-                    BottomLeftLine.Thickness = _G.LineThickness
-                    BottomLeftLine.Transparency = _G.LineTransparency
-                    BottomLeftLine.Color = _G.LineColor
-
-                    BottomRightLine.Thickness = _G.LineThickness
-                    BottomRightLine.Transparency = _G.LineTransparency
-                    BottomRightLine.Color = _G.LineColor
-                    
-                    local HumanoidRootPart_Position, HumanoidRootPart_Size = workspace[v.Name].HumanoidRootPart.CFrame, workspace[v.Name].HumanoidRootPart.Size * _G.SizeIncrease
-
-                    local TopLeftPosition, TopLeftVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(HumanoidRootPart_Size.X,  HumanoidRootPart_Size.Y, 0).p)
-                    local TopRightPosition, TopRightVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(-HumanoidRootPart_Size.X,  HumanoidRootPart_Size.Y, 0).p)
-                    local BottomLeftPosition, BottomLeftVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(HumanoidRootPart_Size.X, -HumanoidRootPart_Size.Y, 0).p)
-                    local BottomRightPosition, BottomRightVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(-HumanoidRootPart_Size.X, -HumanoidRootPart_Size.Y, 0).p)
-
-                    if TopLeftVisible == true then
-                        TopLeftLine.From = Vector2.new(TopLeftPosition.X, TopLeftPosition.Y)
-                        TopLeftLine.To = Vector2.new(TopRightPosition.X, TopRightPosition.Y)
-                        if _G.TeamCheck == true then 
-                            if Players.LocalPlayer.Team ~= v.Team then
-                                TopLeftLine.Visible = _G.BoxesVisible
-                            else
-                                TopLeftLine.Visible = false
+    local function Update()
+        local c
+        c = game:GetService("RunService").RenderStepped:Connect(function()
+            if _G.EnableESP == false then 
+                Box.Visible = false
+                return 
+            end
+            if plr.Character ~= nil and plr.Character:FindFirstChildOfClass("Humanoid") ~= nil and plr.Character.PrimaryPart ~= nil and plr.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
+                local pos, vis = Camera:WorldToViewportPoint(plr.Character.PrimaryPart.Position)
+                if vis then 
+                    local points = {}
+                    local c = 0
+                    for _,v in pairs(plr.Character:GetChildren()) do
+                        if v:IsA("BasePart") then
+                            c = c + 1
+                            local p, vis = Camera:WorldToViewportPoint(v.Position)
+                            if v == plr.Character.PrimaryPart then
+                                p, vis = Camera:WorldToViewportPoint((v.CFrame * CFrame.new(0, 0, -v.Size.Z)).p)
+                            elseif v.Name == "Head" then
+                                p, vis = Camera:WorldToViewportPoint((v.CFrame * CFrame.new(0, v.Size.Y/2, v.Size.Z/1.25)).p)
+                            elseif string.match(v.Name, "Left") then
+                                p, vis = Camera:WorldToViewportPoint((v.CFrame * CFrame.new(-v.Size.X/2, 0, 0)).p)
+                            elseif string.match(v.Name, "Right") then
+                                p, vis = Camera:WorldToViewportPoint((v.CFrame * CFrame.new(v.Size.X/2, 0, 0)).p)
                             end
-                        else
-                            TopLeftLine.Visible = _G.BoxesVisible
+                            points[c] = {p, vis}
                         end
-                    else
-                        TopLeftLine.Visible = false
                     end
 
-                    if TopRightVisible == true and _G.BoxesVisible == true then
-                        TopRightLine.From = Vector2.new(TopRightPosition.X, TopRightPosition.Y)
-                        TopRightLine.To = Vector2.new(BottomRightPosition.X, BottomRightPosition.Y)
-                        if _G.TeamCheck == true then 
-                            if Players.LocalPlayer.Team ~= v.Team then
-                                TopRightLine.Visible = _G.BoxesVisible
-                            else
-                                TopRightLine.Visible = false
+                    local TopY = math.huge
+                    local DownY = -math.huge
+                    local LeftX = math.huge
+                    local RightX = -math.huge
+
+                    local Left
+                    local Right
+                    local Top
+                    local Bottom
+
+                    local closest = nil
+                    for _,v in pairs(points) do
+                        if v[2] == true then
+                            local p = v[1]
+                            if p.Y < TopY then
+                                Top = p
+                                TopY = p.Y
                             end
-                        else
-                            TopRightLine.Visible = _G.BoxesVisible
+                            if p.Y > DownY then
+                                Bottom = p
+                                DownY = p.Y
+                            end
+                            if p.X > RightX then
+                                Right = p
+                                RightX = p.X
+                            end
+                            if p.X < LeftX then
+                                Left = p
+                                LeftX = p.X
+                            end
                         end
-                    else
-                        TopRightLine.Visible = false
                     end
 
-                    if BottomLeftVisible == true and _G.BoxesVisible == true then
-                        BottomLeftLine.From = Vector2.new(BottomLeftPosition.X, BottomLeftPosition.Y)
-                        BottomLeftLine.To = Vector2.new(TopLeftPosition.X, TopLeftPosition.Y)
-                        if _G.TeamCheck == true then 
-                            if Players.LocalPlayer.Team ~= v.Team then
-                                BottomLeftLine.Visible = _G.BoxesVisible
-                            else
-                                BottomLeftLine.Visible = false
-                            end
-                        else
-                            BottomLeftLine.Visible = _G.BoxesVisible
-                        end
-                    else
-                        BottomLeftLine.Visible = false
-                    end
+                    if Left ~= nil and Right ~= nil and Top ~= nil and Bottom ~= nil then
+                        Box.PointA = Vector2.new(Right.X, Top.Y)
+                        Box.PointB = Vector2.new(Left.X, Top.Y)
+                        Box.PointC = Vector2.new(Left.X, Bottom.Y)
+                        Box.PointD = Vector2.new(Right.X, Bottom.Y)
 
-                    if BottomRightVisible == true and _G.BoxesVisible == true then
-                        BottomRightLine.From = Vector2.new(BottomRightPosition.X, BottomRightPosition.Y)
-                        BottomRightLine.To = Vector2.new(BottomLeftPosition.X, BottomLeftPosition.Y)
-                        if _G.TeamCheck == true then 
-                            if Players.LocalPlayer.Team ~= v.Team then
-                                BottomRightLine.Visible = _G.BoxesVisible
-                            else
-                                BottomRightLine.Visible = false
-                            end
-                        else
-                            BottomRightLine.Visible = _G.BoxesVisible
-                        end
-                    else
-                        BottomRightLine.Visible = false
+                        Box.Visible = true
+                    else 
+                        Box.Visible = false
                     end
-                else
-                    TopRightLine.Visible = false
-                    TopLeftLine.Visible = false
-                    BottomLeftLine.Visible = false
-                    BottomRightLine.Visible = false
+                else 
+                    Box.Visible = false
                 end
-            end)
-
-            Players.PlayerRemoving:Connect(function()
-                TopRightLine.Visible = false
-                TopLeftLine.Visible = false
-                BottomLeftLine.Visible = false
-                BottomRightLine.Visible = false
-            end)
-        end
-    end
-
-    Players.PlayerAdded:Connect(function(Player)
-        Player.CharacterAdded:Connect(function(v)
-            if v.Name ~= Players.LocalPlayer.Name then
-                local TopLeftLine = Drawing.new("Line")
-                local TopRightLine = Drawing.new("Line")
-                local BottomLeftLine = Drawing.new("Line")
-                local BottomRightLine = Drawing.new("Line")
-    
-                RunService.RenderStepped:Connect(function()
-                    if workspace:FindFirstChild(v.Name) ~= nil and workspace[v.Name]:FindFirstChild("HumanoidRootPart") ~= nil then 
-                        TopLeftLine.Thickness = _G.LineThickness
-                        TopLeftLine.Transparency = _G.LineTransparency
-                        TopLeftLine.Color = _G.LineColor
-    
-                        TopRightLine.Thickness = _G.LineThickness
-                        TopRightLine.Transparency = _G.LineTransparency
-                        TopRightLine.Color = _G.LineColor
-    
-                        BottomLeftLine.Thickness = _G.LineThickness
-                        BottomLeftLine.Transparency = _G.LineTransparency
-                        BottomLeftLine.Color = _G.LineColor
-    
-                        BottomRightLine.Thickness = _G.LineThickness
-                        BottomRightLine.Transparency = _G.LineTransparency
-                        BottomRightLine.Color = _G.LineColor
-                        
-                        local HumanoidRootPart_Position, HumanoidRootPart_Size = workspace[v.Name].HumanoidRootPart.CFrame, workspace[v.Name].HumanoidRootPart.Size * _G.SizeIncrease
-    
-                        local TopLeftPosition, TopLeftVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(HumanoidRootPart_Size.X,  HumanoidRootPart_Size.Y, 0).p)
-                        local TopRightPosition, TopRightVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(-HumanoidRootPart_Size.X,  HumanoidRootPart_Size.Y, 0).p)
-                        local BottomLeftPosition, BottomLeftVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(HumanoidRootPart_Size.X, -HumanoidRootPart_Size.Y, 0).p)
-                        local BottomRightPosition, BottomRightVisible = Camera:WorldToViewportPoint(HumanoidRootPart_Position * CFrame.new(-HumanoidRootPart_Size.X, -HumanoidRootPart_Size.Y, 0).p)
-    
-                        if TopLeftVisible == true then
-                            TopLeftLine.From = Vector2.new(TopLeftPosition.X, TopLeftPosition.Y)
-                            TopLeftLine.To = Vector2.new(TopRightPosition.X, TopRightPosition.Y)
-                            if _G.TeamCheck == true then 
-                                if Players.LocalPlayer.Team ~= Player.Team then
-                                    TopLeftLine.Visible = _G.BoxesVisible
-                                else
-                                    TopLeftLine.Visible = false
-                                end
-                            else
-                                TopLeftLine.Visible = _G.BoxesVisible
-                            end
-                        else
-                            TopLeftLine.Visible = false
-                        end
-    
-                        if TopRightVisible == true and _G.BoxesVisible == true then
-                            TopRightLine.From = Vector2.new(TopRightPosition.X, TopRightPosition.Y)
-                            TopRightLine.To = Vector2.new(BottomRightPosition.X, BottomRightPosition.Y)
-                            if _G.TeamCheck == true then 
-                                if Players.LocalPlayer.Team ~= Player.Team then
-                                    TopRightLine.Visible = _G.BoxesVisible
-                                else
-                                    TopRightLine.Visible = false
-                                end
-                            else
-                                TopRightLine.Visible = _G.BoxesVisible
-                            end
-                        else
-                            TopRightLine.Visible = false
-                        end
-    
-                        if BottomLeftVisible == true and _G.BoxesVisible == true then
-                            BottomLeftLine.From = Vector2.new(BottomLeftPosition.X, BottomLeftPosition.Y)
-                            BottomLeftLine.To = Vector2.new(TopLeftPosition.X, TopLeftPosition.Y)
-                            if _G.TeamCheck == true then 
-                                if Players.LocalPlayer.Team ~= Player.Team then
-                                    BottomLeftLine.Visible = _G.BoxesVisible
-                                else
-                                    BottomLeftLine.Visible = false
-                                end
-                            else
-                                BottomLeftLine.Visible = _G.BoxesVisible
-                            end
-                        else
-                            BottomLeftLine.Visible = false
-                        end
-    
-                        if BottomRightVisible == true and _G.BoxesVisible == true then
-                            BottomRightLine.From = Vector2.new(BottomRightPosition.X, BottomRightPosition.Y)
-                            BottomRightLine.To = Vector2.new(BottomLeftPosition.X, BottomLeftPosition.Y)
-                            if _G.TeamCheck == true then 
-                                if Players.LocalPlayer.Team ~= Player.Team then
-                                    BottomRightLine.Visible = _G.BoxesVisible
-                                else
-                                    BottomRightLine.Visible = false
-                                end
-                            else
-                                BottomRightLine.Visible = _G.BoxesVisible
-                            end
-                        else
-                            BottomRightLine.Visible = false
-                        end
-                    else
-                        TopRightLine.Visible = false
-                        TopLeftLine.Visible = false
-                        BottomLeftLine.Visible = false
-                        BottomRightLine.Visible = false
-                    end
-                end)
-    
-                Players.PlayerRemoving:Connect(function()
-                    TopRightLine.Visible = false
-                    TopLeftLine.Visible = false
-                    BottomLeftLine.Visible = false
-                    BottomRightLine.Visible = false
-                end)
+            else
+                Box.Visible = false
+                if game.Players:FindFirstChild(plr.Name) == nil then
+                    c:Disconnect()
+                end
             end
         end)
-    end)
+    end
+    coroutine.wrap(Update)()
 end
 
-if _G.DefaultSettings == true then
-    _G.TeamCheck = false
-    _G.BoxesVisible = true
-    _G.LineColor = Color3.fromRGB(40, 90, 255)
-    _G.LineThickness = 1
-    _G.LineTransparency = 0.5
-    _G.SizeIncrease = 1.5
-    _G.DisableKey = Enum.KeyCode.Q
+for _,v in pairs(game:GetService("Players"):GetChildren()) do
+    if v.Name ~= Player.Name then 
+        DrawESP(v)
+    end
 end
 
-UserInputService.TextBoxFocused:Connect(function()
-    Typing = true
+game:GetService("Players").PlayerAdded:Connect(function(v)
+    DrawESP(v)
 end)
-
-UserInputService.TextBoxFocusReleased:Connect(function()
-    Typing = false
-end)
-
-UserInputService.InputBegan:Connect(function(Input)
-    if Input.KeyCode == _G.DisableKey and Typing == false then
-        _G.BoxesVisible = not _G.BoxesVisible
-        
-        if _G.SendNotifications == true then
-            game:GetService("StarterGui"):SetCore("SendNotification",{
-                Title = "Exunys Developer";
-                Text = "The boxes' visibility is now set to "..tostring(_G.BoxesVisible)..".";
-                Duration = 5;
-            })
-        end
-    end
-end)
-
-local Success, Errored = pcall(function()
-    CreateBoxes()
-end)
-
-if Success and not Errored then
-    if _G.SendNotifications == true then
-        game:GetService("StarterGui"):SetCore("SendNotification",{
-            Title = "Exunys Developer";
-            Text = "Boxes script has successfully loaded.";
-            Duration = 5;
-        })
-    end
-elseif Errored and not Success then
-    if _G.SendNotifications == true then
-        game:GetService("StarterGui"):SetCore("SendNotification",{
-            Title = "Exunys Developer";
-            Text = "Boxes script has errored while loading, please check the developer console! (F9)";
-            Duration = 5;
-        })
-    end
-    TestService:Message("The boxes script has errored, please notify Exunys with the following information :")
-    warn(Errored)
-    print("!! IF THE ERROR IS A FALSE POSITIVE (says that a player cannot be found) THEN DO NOT BOTHER !!")
-end
